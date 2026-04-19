@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AQI Predictor</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT SIDE -->
+    <div class="left">
+        <h1>AQI Predictor</h1>
+
+        <form action="/predict" method="post">
+
+            <input type="number" step="any" name="CO" placeholder="CO" required>
+            <input type="number" step="any" name="NO2" placeholder="NO2" required>
+            <input type="number" step="any" name="SO2" placeholder="SO2" required>
+            <input type="number" step="any" name="O3" placeholder="O3" required>
+            <input type="number" step="any" name="PM25" placeholder="PM2.5" required>
+            <input type="number" step="any" name="PM10" placeholder="PM10" required>
+
+            <button type="submit">Predict AQI</button>
+        </form>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="right">
+
+        {% if prediction is not none %}
+
+        <!-- RESULT -->
+        <div class="card result">
+            <!-- <h2>Real AQI: {{ real_aqi }}</h2> -->
+            <h2>ML AQI: {{ prediction }}</h2>
+            <h3>{{ category }}</h3>
+        </div>
+
+        <!-- METRICS -->
+        <div class="card">
+            <h3>MSE: {{ mse }}</h3>
+            <h3>R²: {{ r2 }}</h3>
+        </div>
+
+        <!-- POLLUTION GRAPH -->
+        <div class="card">
+            <h3>Pollution Graph</h3>
+            <canvas id="chart"></canvas>
+        </div>
+
+        <!-- FEATURE IMPORTANCE -->
+        <div class="card">
+            <h3>Feature Importance</h3>
+            <canvas id="featureChart"></canvas>
+        </div>
+
+        <!-- CHART SCRIPT -->
+        <script>
+            const values = {{ values | tojson }};
+            const importance = {{ importance | tojson }};
+
+            // Pollution Graph
+            new Chart(document.getElementById("chart"), {
+                type: 'bar',
+                data: {
+                    labels: ['CO','NO2','SO2','O3','PM2.5','PM10'],
+                    datasets: [{
+                        label: 'Pollution Levels',
+                        data: values,
+                        backgroundColor: [
+                            'red',
+                            'blue',
+                            'yellow',
+                            'cyan',
+                            'purple',
+                            'orange'
+                        ],
+                        borderColor: 'black',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+
+            // Feature Importance Graph
+            new Chart(document.getElementById("featureChart"), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(importance),
+                    datasets: [{
+                        label: 'Feature Importance',
+                        data: Object.values(importance),
+                        backgroundColor: 'teal'
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        </script>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
